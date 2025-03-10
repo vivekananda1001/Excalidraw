@@ -1,20 +1,31 @@
 import { Request, Response } from "express";
-import { user } from "@repo/types/types";
+import { CreateUserSchema, user } from "@repo/common/common";
 import jwt from "jsonwebtoken";
 
-import { USER_JWT_SECRET } from "../config";
+import { USER_JWT_SECRET } from "@repo/backend-common/config";
 
 class Authcontroller {
     static async login(req: Request, res: Response){
         try {
             const body:user = req.body();
-            const userId = body.Id;
+            const email = body.email;
 
-            const token = jwt.sign({userId},USER_JWT_SECRET);
+            let JWTPayload = {
+                name: body.name,
+                email: email,
+                // id: findUser.id
+            }
+
+            const token = jwt.sign( JWTPayload, USER_JWT_SECRET, {
+                expiresIn: '365d'
+            });;
 
             res.json({
                 message: "Login Succesful!",
-                token: token
+                user: {
+                    // ...findUser,
+                    token: token
+                }
             })
 
         }
@@ -26,11 +37,25 @@ class Authcontroller {
     }
 
     static async signup(req: Request, res: Response){
+        try{
+            const body: AuthUser = req.body;
 
-    }
+            const data = CreateUserSchema.safeParse(body);
+            if(!data.success){
+                res.json({
+                    message: "Incorrect credentials."
+                });
+                return;
+            }
 
-    static async createRoom(req: Request, res:Response){
-        
+            res.json({
+                message: "Signed in succesfully!"
+            })
+        }catch(error){
+            res.status(500).json({
+                message: "Something went wrong. Please try again."
+            })
+        }
     }
 }
 

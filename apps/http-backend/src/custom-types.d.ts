@@ -1,7 +1,6 @@
 interface AuthUser {
-    Id: string;
-    name: string;
-    email: string;
+    username: string;
+    password: string;
 }
 
 declare namespace Express {
