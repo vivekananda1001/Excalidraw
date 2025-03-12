@@ -1,10 +1,10 @@
 interface AuthUser {
-    username: string;
+    email: string;
     password: string;
 }
 
 declare namespace Express {
     export interface Request {
-        user?: AuthUser;
+        user?: AuthUser
     }
 }

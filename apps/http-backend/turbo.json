@@ -2,7 +2,12 @@
     "extends": ["//"],
     "tasks": {
         "build": {
-            "outputs": ["dist/**"]
+            "outputs": ["dist/**"],
+            "env": [
+                "USER_JWT_SECRET",
+                "HTTP_PORT",
+                "WS_PORT"
+            ]
         }
     }
 }

@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 
 
-class ChatRoomController {
+class RoomController {
     static async createRoom (req: Request, res: Response) {
-        
+            
     }
 }
 
-export default ChatRoomController;
+export default RoomController;

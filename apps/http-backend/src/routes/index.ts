@@ -1,12 +1,14 @@
-import { Router } from "express";
+import { Router } from "express"
 import Authcontroller from "../controllers/Authcontroller";
-import ChatRoomController from "../controllers/Chatroomcontroller";
+import RoomController from "../controllers/Chatroomcontroller";
 
-const router = Router();
+const router:Router = Router();
 
 // Auth routes
 router.post("/signup", Authcontroller.signup);
 router.post("/login", Authcontroller.login);
 
 // Room routes
-router.get("/Create/:roomId",ChatRoomController.createRoom);
+router.get("/Create/:roomId",RoomController.createRoom);
+
+export default router;
