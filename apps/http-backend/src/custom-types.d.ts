@@ -6,5 +6,6 @@ interface AuthUser {
 declare namespace Express {
     export interface Request {
         user?: AuthUser
+        userId?: string
     }
 }

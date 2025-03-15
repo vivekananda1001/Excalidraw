@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import { CreateUserSchema, user } from "@repo/common/common";
 import jwt from "jsonwebtoken";
 import { prismaClient } from "@repo/db/client"
-import { USER_JWT_SECRET } from "@repo/backend-common/config";
+import { USER_JWT_SECRET } from "../config";
+import bcrypt from 'bcrypt';
 
 interface ExtendedAuthUser extends AuthUser {
     name: string;
@@ -11,41 +12,43 @@ interface ExtendedAuthUser extends AuthUser {
 class Authcontroller {
     static async login(req: Request, res: Response){
         try {
-            console.log(USER_JWT_SECRET);
             const body:user = req.body;
             const email = body.email;   
-
-            // console.log(body);
 
             let findUser = await prismaClient.user.findUnique({
                 where: {
                     email: email,
-                    password: body.password
                 }
             })
 
             if(!findUser){
-                res.json({
+                res.status(401).json({
                     message: "Incorrect credentials!",
                 })
                 return;
             }
-            // console.log("Found user: ",findUser);
+
+            const passwordMatch = await bcrypt.compare(
+                body.password,
+                findUser.password
+            );
+
+            if (!passwordMatch) {
+                res.status(401).json({
+                    message: "Incorrect password.",
+                });
+                return;
+            }
+
             let JWTPayload = {
                 name: body.name,
                 email: email,
                 id: findUser.id
             }
-            // console.log(JWTPayload);
-            let token
-            try{
-                token = jwt.sign( JWTPayload, USER_JWT_SECRET, {
-                    expiresIn: '365d'
-                });
-            }
-            catch(err){
-                console.log("Error while signing jwt.");
-            }
+
+            let token = jwt.sign( JWTPayload, USER_JWT_SECRET, {
+                expiresIn: '365d'
+            });
 
             res.json({
                 message: "Login Succesful!",
@@ -69,20 +72,27 @@ class Authcontroller {
     static async signup(req: Request, res: Response){
         try{
             const body: ExtendedAuthUser = req.body;
-
+            const hashedPassword = await bcrypt.hash(body.password,3);
             const data = CreateUserSchema.safeParse(body);
             if(!data.success){
-                res.json({
+                res.status(401).json({
                     message: "Incorrect credentials."
                 });
                 return;
             }
-            await prismaClient.user.create({
-                data:body
-            })
-            res.json({
-                message: "Signed up succesfully!"
-            })
+            body.password = hashedPassword;
+            try{
+                await prismaClient.user.create({
+                    data:body
+                })
+                res.json({
+                    message: "Signed up succesfully!"
+                })
+            }catch(error){
+                res.status(411).json({
+                    message: "A user with this email already exists in the data base."
+                })
+            }
         }catch(error){
             res.status(500).json({
                 message: "Something went wrong. Please try again."
